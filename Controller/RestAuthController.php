@@ -86,12 +86,11 @@ class RestAuthController extends AppController {
 					'fields' => array('id','fullname','email','avatar','status','token'),
 					'conditions' => array('Player.token' => str_ireplace('Basic ','',$reqAuthHeader))
 				));
-				$this->log(PHP_EOL."b", 'debug');
 			}else{ 
 				$reqPlayer =  $this->request->data;  // $this->request->input('json_decode'); // // Basic username/password matching
 				//print_r($reqPlayer); die;
 				$neednewToken = true;
-				$this->log(PHP_EOL."c", 'debug');
+				
 				if(!empty($reqPlayer['email']) && !empty($reqPlayer['password'])){
 					$playerData = $this->Player->find('first', array(
 						'fields' => array('id','fullname','email','avatar','status','token'),

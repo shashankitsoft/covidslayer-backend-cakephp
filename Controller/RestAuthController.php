@@ -63,30 +63,35 @@ class RestAuthController extends AppController {
     }
 	
 	public function login() {
-		if ($this->request->is('post') || $this->request->is('get')) {
+		if ($this->request->is('post') || $this->request->is('get')) { 		
+		
 			$neednewToken = false;
 			$playerData = array();
-			$reqAuthHeader = $this->request->header('Authorization');
-			// echo $reqAuthHeader; 
-			if(!empty($reqAuthHeader) && (strpos($reqAuthHeader, 'Bearer ')!== false) ){ // Bearer token
+			$reqAuthHeader = $this->request->header('Authorization'); 
+			//$this->log(PHP_EOL.$reqAuthHeader, 'debug');
+
+			if(!empty($reqAuthHeader) && (stripos($reqAuthHeader, 'Bearer ')!== false) ){ // Bearer token
 				$neednewToken = false; 
 				$playerData = $this->Player->find('first', array(
 					'fields' => array('id','fullname','email','avatar','status','token'),
-					'conditions' => array('Player.token' => str_replace('Bearer ','',$reqAuthHeader))
+					'conditions' => array('Player.token' => str_ireplace('Bearer ','',$reqAuthHeader))
 				));
+				// $this->log(PHP_EOL.print_r($playerData,true), 'debug');
+				// $log = $this->Player->getDataSource()->getLog(false, false); // get raw sql query
+				// $this->log(PHP_EOL.print_r($log,true), 'debug');
 				
-			}elseif(!empty($reqAuthHeader) && (strpos($reqAuthHeader, 'Basic ')!== false) ){ // Basic auth
+			}elseif(!empty($reqAuthHeader) && (stripos($reqAuthHeader, 'Basic ')!== false) ){ // Basic auth
 				$neednewToken = false; 
 				$playerData = $this->Player->find('first', array(
 					'fields' => array('id','fullname','email','avatar','status','token'),
-					'conditions' => array('Player.token' => str_replace('Basic ','',$reqAuthHeader))
+					'conditions' => array('Player.token' => str_ireplace('Basic ','',$reqAuthHeader))
 				));
-				
+				$this->log(PHP_EOL."b", 'debug');
 			}else{ 
 				$reqPlayer =  $this->request->data;  // $this->request->input('json_decode'); // // Basic username/password matching
 				//print_r($reqPlayer); die;
 				$neednewToken = true;
-				
+				$this->log(PHP_EOL."c", 'debug');
 				if(!empty($reqPlayer['email']) && !empty($reqPlayer['password'])){
 					$playerData = $this->Player->find('first', array(
 						'fields' => array('id','fullname','email','avatar','status','token'),
@@ -100,7 +105,8 @@ class RestAuthController extends AppController {
 				}
 			}
 			// print_r($playerData); die('dd');
-			if(is_countable($playerData) && count($playerData)){
+			if(is_countable($playerData) && count($playerData)){ 
+				// $this->log(PHP_EOL."Got player data.", 'debug');
 				if($neednewToken){ 
 					$token = $this->generateToken($playerData['Player']['email'],$reqPlayer['password']);
 
@@ -113,7 +119,7 @@ class RestAuthController extends AppController {
 				}
 				$response = array("statusCode"=>200,"status"=>"Success","success"=>$playerData,"token"=>$playerData['Player']['token'],"message"=>"Logged in Successfully!");								
 			}			
-			else{
+			else{ 
 				$response = array("statusCode"=>200,"status"=>"Error","success"=>false,"message"=>array("Invalid Credentials!"));			
 				
 			}
